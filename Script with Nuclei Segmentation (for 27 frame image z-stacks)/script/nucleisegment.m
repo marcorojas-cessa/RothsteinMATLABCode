@@ -231,16 +231,6 @@ for i=1:size(nuclei,1)
     end
 end
 
-for i = 1:size(totalcelldata, 1)        % loop over rows
-    for j = 2:4                        % loop over target columns
-        xyz = totalcelldata{i, j};      % get the matrix
-        if ~isempty(xyz)
-            xyz(:,1:2) = xyz(:,1:2) - 1;   % subtract 1 from x and y
-            totalcelldata{i, j} = xyz;      % store it back
-        end
-    end
-end
-
 
 
 %write totalcelldata cell to a CSV file

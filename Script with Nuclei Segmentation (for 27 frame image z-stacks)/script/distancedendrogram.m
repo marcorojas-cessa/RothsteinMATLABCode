@@ -195,15 +195,6 @@ for i=1:size(totalcelldata2,1)
 end
 totalcelldata2(indices,:)=[];
 
-for i = 1:size(totalcelldata2, 1)        % loop over rows
-    for j = 2:4                        % loop over target columns
-        xyz = totalcelldata2{i, j};      % get the matrix
-        if ~isempty(xyz)
-            xyz(:,1:2) = xyz(:,1:2) - 1;   % subtract 1 from x and y
-            totalcelldata2{i, j} = xyz;      % store it back
-        end
-    end
-end
 
 %write totalcelldata2 cell to a CSV file
 columnHeadings = {'Color Code','R Locations (pixels)','Y Locations (pixels)','B Locations (pixels)','R Intensities (au)','Y Intensities (au)','B Intensities (au)','R 3D Gaussian Data (Amplitude, Sigma_x, Sigma_y, Sigma_z, and R-squared value of fit)','Y 3D Gaussian Data','B 3D Gaussian Data','RR Distances (nm)','YY Distances (nm)','BB Distances (nm)','RY Distances (nm)','RB Distances (nm)','YB Distances (nm)'};
