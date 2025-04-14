@@ -230,34 +230,3 @@ for i=1:size(nuclei,1)
         totalcelldata(end+1,:) = cellentry;
     end
 end
-
-
-
-%write totalcelldata cell to a CSV file
-columnHeadings = {'Color Code','R Locations (pixels)','Y Locations (pixels)','B Locations (pixels)','R Intensities (au)','Y Intensities (au)','B Intensities (au)','R 3D Gaussian Data (Amplitude, Sigma_x, Sigma_y, Sigma_z, and R-squared value of fit)','Y 3D Gaussian Data','B 3D Gaussian Data','RR Distances (nm)','YY Distances (nm)','BB Distances (nm)','RY Distances (nm)','RB Distances (nm)','YB Distances (nm)','Nuclei Centroid Location (pixels)','Nuclei Volume (3D pixels)'};
-[nRows,nCols] = size(totalcelldata);
-outputCell = cell(nRows + 1, nCols);
-if ~isempty(outputCell)
-    outputCell(1,:) = columnHeadings;
-end
-
-for row = 1:nRows
-    for col = 1:nCols
-        % Convert each entry to a string representation
-        if isempty(totalcelldata{row, col})
-            outputCell{row + 1, col} = ''; % Keep empty
-        elseif ischar(totalcelldata{row, col})
-            outputCell{row + 1, col} = totalcelldata{row, col}; % Keep string
-        else
-            % Convert numerical arrays or single values to strings
-            if ismatrix(totalcelldata{row, col}) && ~isscalar(totalcelldata{row, col})
-                % Convert row-wise by transposing first
-                outputCell{row + 1, col} = strjoin(string(totalcelldata{row, col}.'), ', ');
-            else
-                outputCell{row + 1, col} = strjoin(string(totalcelldata{row, col}), ', ');
-            end
-        end
-    end
-end
-
-writecell(outputCell, 'totalcelldata.csv');

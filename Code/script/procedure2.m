@@ -49,9 +49,9 @@ channel1zstack=loadtiff('channel1_maxProj.tif');
 channel2zstack=loadtiff('channel2_maxProj.tif');
 channel3zstack=loadtiff('channel3_maxProj.tif');
 
-channel1coords = getZCoord(tempchannel1coords,channel1images);
-channel2coords = getZCoord(tempchannel2coords,channel2images);
-channel3coords = getZCoord(tempchannel3coords,channel3images);
+pixelchannel1coords = getZCoord(tempchannel1coords,channel1images);
+pixelchannel2coords = getZCoord(tempchannel2coords,channel2images);
+pixelchannel3coords = getZCoord(tempchannel3coords,channel3images);
 
 %{
 %for later removal of associated nuclei in nuclei segmentation protocol
@@ -62,9 +62,9 @@ removed3coords = getZCoord(removed3coords,channel3images);
 removedcoords = [removed1coords;removed2coords;removed3coords];
 %}
 
-[channel1coords,fits1] = getInfo(channel1coords,channel1images);
-[channel2coords,fits2] = getInfo(channel2coords,channel2images);
-[channel3coords,fits3] = getInfo(channel3coords,channel3images);
+[channel1coords,fits1] = getInfo(pixelchannel1coords,channel1images,3);
+[channel2coords,fits2] = getInfo(pixelchannel2coords,channel2images,2);
+[channel3coords,fits3] = getInfo(pixelchannel3coords,channel3images,2);
 
 %{
 %Find sub-z location of each local maxima signal
@@ -73,21 +73,85 @@ removedcoords = [removed1coords;removed2coords;removed3coords];
 [channel3coords,fits3]=getzpositions(tempchannel3coords,channel3images,zframeno);
 %}
 
-nucleisegment2
+nucleisegment
 
-distancedendrogram2
-
-
-
-
-
-%{
-if isempty(totalcelldata) || isempty(totalcelldata2)
-    jaccardindices=[];
-    meanjaccard=0;
-else
-    [jaccardindices,meanjaccard] = meanJaccardIndex(totalcelldata,totalcelldata2)
+for i = 1:size(totalcelldata, 1)        % loop over rows
+    for j = 2:4                        % loop over target columns
+        xyz = totalcelldata{i, j};      % get the matrix
+        if ~isempty(xyz)
+            xyz(:,1:2) = xyz(:,1:2) - 1;   % subtract 1 from x and y
+            totalcelldata{i, j} = xyz;      % store it back
+        end
+    end
 end
-%}
+
+distancedendrogram
+
+for i = 1:size(totalcelldata2, 1)        % loop over rows
+    for j = 2:4                        % loop over target columns
+        xyz = totalcelldata2{i, j};      % get the matrix
+        if ~isempty(xyz)
+            xyz(:,1:2) = xyz(:,1:2) - 1;   % subtract 1 from x and y
+            totalcelldata2{i, j} = xyz;      % store it back
+        end
+    end
+end
+
+%write totalcelldata cell to a CSV file
+columnHeadings = {'Color Code','R Locations (pixels)','Y Locations (pixels)','B Locations (pixels)','R Intensities (au)','Y Intensities (au)','B Intensities (au)','R 3D Gaussian Data (Amplitude, Sigma_x, Sigma_y, Sigma_z, and R-squared value of fit)','Y 3D Gaussian Data','B 3D Gaussian Data','RR Distances (nm)','YY Distances (nm)','BB Distances (nm)','RY Distances (nm)','RB Distances (nm)','YB Distances (nm)','Nuclei Centroid Location (pixels)','Nuclei Volume (3D pixels)'};
+[nRows,nCols] = size(totalcelldata);
+outputCell = cell(nRows + 1, nCols);
+if ~isempty(outputCell)
+    outputCell(1,:) = columnHeadings;
+end
+
+for row = 1:nRows
+    for col = 1:nCols
+        % Convert each entry to a string representation
+        if isempty(totalcelldata{row, col})
+            outputCell{row + 1, col} = ''; % Keep empty
+        elseif ischar(totalcelldata{row, col})
+            outputCell{row + 1, col} = totalcelldata{row, col}; % Keep string
+        else
+            % Convert numerical arrays or single values to strings
+            if ismatrix(totalcelldata{row, col}) && ~isscalar(totalcelldata{row, col})
+                % Convert row-wise by transposing first
+                outputCell{row + 1, col} = strjoin(string(totalcelldata{row, col}.'), ', ');
+            else
+                outputCell{row + 1, col} = strjoin(string(totalcelldata{row, col}), ', ');
+            end
+        end
+    end
+end
+
+writecell(outputCell, 'totalcelldata.csv');
+
+%write totalcelldata2 cell to a CSV file
+columnHeadings = {'Color Code','R Locations (pixels)','Y Locations (pixels)','B Locations (pixels)','R Intensities (au)','Y Intensities (au)','B Intensities (au)','R 3D Gaussian Data (Amplitude, Sigma_x, Sigma_y, Sigma_z, and R-squared value of fit)','Y 3D Gaussian Data','B 3D Gaussian Data','RR Distances (nm)','YY Distances (nm)','BB Distances (nm)','RY Distances (nm)','RB Distances (nm)','YB Distances (nm)'};
+[nRows,nCols] = size(totalcelldata2);
+outputCell = cell(nRows + 1, nCols);
+outputCell(1,:) = columnHeadings;
+
+for row = 1:nRows
+    for col = 1:nCols
+        % Convert each entry to a string representation
+        if isempty(totalcelldata2{row, col})
+            outputCell{row + 1, col} = ''; % Keep empty
+        elseif ischar(totalcelldata2{row, col})
+            outputCell{row + 1, col} = totalcelldata2{row, col}; % Keep string
+        else
+            % Convert numerical arrays or single values to strings
+            if ismatrix(totalcelldata2{row, col}) && ~isscalar(totalcelldata2{row, col})
+                % Convert row-wise by transposing first
+                outputCell{row + 1, col} = strjoin(string(totalcelldata2{row, col}.'), ', ');
+            else
+                outputCell{row + 1, col} = strjoin(string(totalcelldata2{row, col}), ', ');
+            end
+        end
+    end
+end
+
+writecell(outputCell, 'totalcelldata2.csv');
+
 
 

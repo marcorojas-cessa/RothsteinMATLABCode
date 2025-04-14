@@ -60,19 +60,22 @@ distance_matrix = pdist(all_points, 'euclidean');
 % Perform hierarchical clustering using Ward’s method
 linkage_matrix = linkage(distance_matrix, 'ward');
 
+%{
 % Plot dendrogram
 figure;
 dendrogram(linkage_matrix);
 title('Dendrogram of Spot Clustering (Excluding Nuclei)');
 xlabel('Spot Index');
 ylabel('Distance');
+ylim([0 2000]);
+%}
 
 % =============================
 % Identify Cells by Cutting Dendrogram
 % =============================
 
 % Define a cutoff distance based on expected cell size
-cutoff_distance = 2000; % Adjust as needed
+cutoff_distance = 2500; % Adjust as needed
 cell_labels = cluster(linkage_matrix, 'Cutoff', cutoff_distance, 'Criterion', 'distance');
 
 % Number of identified cells
@@ -185,40 +188,3 @@ for i = 1:num_cells
     totalcelldata2{i, 15} = RB_distances;     % Red-to-Blue distances
     totalcelldata2{i, 16} = YB_distances;    % Yellow-to-Blue distances
 end
-
-indices=[];
-for i=1:size(totalcelldata2,1)
-    avgcoord = getAverageXYZ(totalcelldata2(i,:));
-    if (avgcoord(3) <= 27/6) || (avgcoord(3) >= 27*5/6)
-        indices=[indices;i];
-    end
-end
-totalcelldata2(indices,:)=[];
-
-
-%write totalcelldata2 cell to a CSV file
-columnHeadings = {'Color Code','R Locations (pixels)','Y Locations (pixels)','B Locations (pixels)','R Intensities (au)','Y Intensities (au)','B Intensities (au)','R 3D Gaussian Data (Amplitude, Sigma_x, Sigma_y, Sigma_z, and R-squared value of fit)','Y 3D Gaussian Data','B 3D Gaussian Data','RR Distances (nm)','YY Distances (nm)','BB Distances (nm)','RY Distances (nm)','RB Distances (nm)','YB Distances (nm)'};
-[nRows,nCols] = size(totalcelldata2);
-outputCell = cell(nRows + 1, nCols);
-outputCell(1,:) = columnHeadings;
-
-for row = 1:nRows
-    for col = 1:nCols
-        % Convert each entry to a string representation
-        if isempty(totalcelldata2{row, col})
-            outputCell{row + 1, col} = ''; % Keep empty
-        elseif ischar(totalcelldata2{row, col})
-            outputCell{row + 1, col} = totalcelldata2{row, col}; % Keep string
-        else
-            % Convert numerical arrays or single values to strings
-            if ismatrix(totalcelldata2{row, col}) && ~isscalar(totalcelldata2{row, col})
-                % Convert row-wise by transposing first
-                outputCell{row + 1, col} = strjoin(string(totalcelldata2{row, col}.'), ', ');
-            else
-                outputCell{row + 1, col} = strjoin(string(totalcelldata2{row, col}), ', ');
-            end
-        end
-    end
-end
-
-writecell(outputCell, 'totalcelldata2.csv');

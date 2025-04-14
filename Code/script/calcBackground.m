@@ -1,8 +1,8 @@
-function bg_noise = calcBackground(channelimage, coord)
+function bg_noise = calcBackground(channelimage, coord,length)
     % Define search window size
-    x_range = 5;  % 5 pixels in X
-    y_range = 5;  % 5 pixels in Y
-    z_range = 6;  % 6 pixels in Z
+    x_range = length+1; 
+    y_range = length+1; 
+    z_range = length+1;  
     X = coord(1);
     Y = coord(2);
     Z = coord(3);
