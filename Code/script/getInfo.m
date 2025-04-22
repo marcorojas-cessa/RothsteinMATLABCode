@@ -1,9 +1,15 @@
-function [refinedchannelcoords,fits] = getInfo(channelcoords,channelimages,length)
+function [refinedchannelcoords,fits] = getInfo(channelcoords,channelimages,length,length2,pick)
     
     % Define search window size
-    x_range = length;  
-    y_range = length;  
-    z_range = length;  
+    if pick ~= 3
+        x_range = length;  
+        y_range = length;  
+        z_range = length; 
+    else
+        x_range = length;
+        y_range = length;
+        z_range = length2;
+    end
 
     [Nx, Ny, Nz] = size(channelimages);  % Image dimensions
 
@@ -29,8 +35,13 @@ for i=1:size(channelcoords,1)
     Z_cut = Z - z_min + 1;
     guesscoord = [X_cut,Y_cut,Z_cut];
 
-
-    [tempcoord,fitinfo] = fit3DGaussian(tempimage,guesscoord,channelimages,channelcoords(i,:),length);
+    if pick == 1
+        [tempcoord,fitinfo] = fitdistorted3DGaussian(tempimage,guesscoord,channelimages,channelcoords(i,:),length);
+    elseif pick == 2
+        [tempcoord,fitinfo] = fit3DGaussian(tempimage,guesscoord,channelimages,channelcoords(i,:),length);
+    else
+        [tempcoord,fitinfo] = fit2D1DGaussian(tempimage,guesscoord,channelimages,channelcoords(i,:),length,length2);
+    end
     tempcoord = [X+tempcoord(1),Y+tempcoord(2),Z+tempcoord(3)];
     refinedchannelcoords = [refinedchannelcoords;tempcoord];
     fits(end+1,:) = fitinfo;

@@ -6,19 +6,27 @@ Columbia University
 procedure.m script
 %}
 
-%boundary distance from edge of view in nm to exclude points
-boundarydistance = 2000;
-
-%proportion of z view to exclude nuclei centroids outside of  (taken from
-%the center)
-zprop = 2/3;
-
 %load fiji coordinates
 %convert the fijichannel coords to MATLAB-oriented coords
 %fijitable1 = readtable('pointsC1.csv');
 %fc1 = table2array(fijitable1);
 %fijichannel1 = fc1(:,2:3);
-
+pick = input("What type of fitting? \n 1. distorted 3D Gaussian \n 2. 3D Gaussian \n 3. 2D X,Y Gaussian + 1D Z Gaussian\n> ");
+if pick ~= 3
+    rwidth = input("RED: How many voxels from signal local max for fitting? (Background uses voxels from 1 + this number)\n> ");
+    ywidth = input("YELLOW: How many voxels from signal local max for fitting? (Background uses voxels from 1 + this number)\n> ");
+    bwidth = input("BLUE: How many voxels from signal local max for fitting? (Background uses voxels from 1 + this number)\n> ");
+    rwidth2=0;
+    ywidth2=0;
+    bwidth2= 0;
+else
+    rwidth = input("RED: How many pixels from signal local max for XY fitting? (Background uses pixels from 1 + this number)\n> ");
+    rwidth2 = input("RED: How many z-frames from signal local max for Z fitting? (Background uses z-frames from 1 + this number)\n> ");
+    ywidth = input("YELLOW: How many pixels from signal local max for XY fitting? (Background uses pixels from 1 + this number)\n> ");
+    ywidth2 = input("YELLOW: How many pixels from signal local max for Z fitting (Background uses z-frames from 1 + this number)\n> ");
+    bwidth = input("BLUE: How many pixels from signal local max for XY fitting? (Background uses pixels from 1 + this number)\n> ");
+    bwidth2 = input("BLUE: How many pixels from signal local max for Z fitting? (Background uses z-frames from 1 + this number)\n> ");
+end
 %fijichannel1 = csvread('pointsC1.csv');
 fc1 = table2array(readtable('pointsC1.csv'));
 fijichannel1 = fc1(:,2:3);
@@ -53,32 +61,16 @@ pixelchannel1coords = getZCoord(tempchannel1coords,channel1images);
 pixelchannel2coords = getZCoord(tempchannel2coords,channel2images);
 pixelchannel3coords = getZCoord(tempchannel3coords,channel3images);
 
-%{
-%for later removal of associated nuclei in nuclei segmentation protocol
-removed1coords = getZCoord(removed1coords,channel1images);
-removed2coords = getZCoord(removed2coords,channel2images);
-removed3coords = getZCoord(removed3coords,channel3images);
-
-removedcoords = [removed1coords;removed2coords;removed3coords];
-%}
-
-[channel1coords,fits1] = getInfo(pixelchannel1coords,channel1images,3);
-[channel2coords,fits2] = getInfo(pixelchannel2coords,channel2images,2);
-[channel3coords,fits3] = getInfo(pixelchannel3coords,channel3images,2);
-
-%{
-%Find sub-z location of each local maxima signal
-[channel1coords,fits1]=getzpositions(tempchannel1coords,channel1images,zframeno);
-[channel2coords,fits2]=getzpositions(tempchannel2coords,channel2images,zframeno);
-[channel3coords,fits3]=getzpositions(tempchannel3coords,channel3images,zframeno);
-%}
+[channel1coords,fits1] = getInfo(pixelchannel1coords,channel1images,rwidth,rwidth2,pick);
+[channel2coords,fits2] = getInfo(pixelchannel2coords,channel2images,ywidth,ywidth2,pick);
+[channel3coords,fits3] = getInfo(pixelchannel3coords,channel3images,bwidth,bwidth2,pick);
 
 nucleisegment
 
 distancedendrogram
 
 %write totalcelldata cell to a CSV file
-columnHeadings = {'Color Code','R Locations (pixels)','Y Locations (pixels)','B Locations (pixels)','R Intensities (au)','Y Intensities (au)','B Intensities (au)','R 3D Gaussian Data (Amplitude, Sigma_x, Sigma_y, Sigma_z, and R-squared value of fit)','Y 3D Gaussian Data','B 3D Gaussian Data','RR Distances (nm)','YY Distances (nm)','BB Distances (nm)','RY Distances (nm)','RB Distances (nm)','YB Distances (nm)','Nuclei Centroid Location (pixels)','Nuclei Volume (3D pixels)'};
+columnHeadings = {'Color Code','R Locations (pixels)','Y Locations (pixels)','B Locations (pixels)','R Intensities (au)','Y Intensities (au)','B Intensities (au)','R Gaussian Data (Amplitude XY(/)Z, Sigma_x, Sigma_y, Sigma_z, and R-squared value(s) of fit(s) [XY(/)Z])','Y Gaussian Data','B Gaussian Data','RR Distances (nm)','YY Distances (nm)','BB Distances (nm)','RY Distances (nm)','RB Distances (nm)','YB Distances (nm)','Nuclei Centroid Location (pixels)','Nuclei Volume (3D pixels)'};
 [nRows,nCols] = size(totalcelldata);
 outputCell = cell(nRows + 1, nCols);
 if ~isempty(outputCell)
@@ -107,7 +99,7 @@ end
 writecell(outputCell, 'totalcelldata.csv');
 
 %write totalcelldata2 cell to a CSV file
-columnHeadings = {'Color Code','R Locations (pixels)','Y Locations (pixels)','B Locations (pixels)','R Intensities (au)','Y Intensities (au)','B Intensities (au)','R 3D Gaussian Data (Amplitude, Sigma_x, Sigma_y, Sigma_z, and R-squared value of fit)','Y 3D Gaussian Data','B 3D Gaussian Data','RR Distances (nm)','YY Distances (nm)','BB Distances (nm)','RY Distances (nm)','RB Distances (nm)','YB Distances (nm)'};
+columnHeadings = {'Color Code','R Locations (pixels)','Y Locations (pixels)','B Locations (pixels)','R Intensities (au)','Y Intensities (au)','B Intensities (au)','R Gaussian Data (Amplitude XY(/)Z, Sigma_x, Sigma_y, Sigma_z, and R-squared value(s) of fit(s) [XY(/)Z])','Y Gaussian Data','B Gaussian Data','RR Distances (nm)','YY Distances (nm)','BB Distances (nm)','RY Distances (nm)','RB Distances (nm)','YB Distances (nm)'};
 [nRows,nCols] = size(totalcelldata2);
 outputCell = cell(nRows + 1, nCols);
 outputCell(1,:) = columnHeadings;

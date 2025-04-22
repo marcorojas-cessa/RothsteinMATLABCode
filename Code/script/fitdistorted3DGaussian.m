@@ -3,7 +3,7 @@ function [refinedcoords, fitinfo] = fit3DGaussian(intensityMatrix, guesscoords, 
 [Nx, Ny, Nz] = size(intensityMatrix);
 
 % Corrected background calculation
-background = calcBackground(channelimage, coords,length);
+background = calcBackground(channelimage, coords,length,0);
 
 % Subtract background
 intensityMatrix = intensityMatrix - background;
